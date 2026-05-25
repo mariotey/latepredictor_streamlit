@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 from utils.supabase_utils import extract_all_rows
 from config import FEEDBACK_NAME
 
@@ -8,7 +9,7 @@ st.set_page_config(layout="wide")
 st.title("⏱️ Lateness Prediction Monitoring Dashboard")
 
 # Refreshes every hour
-st.autorefresh(interval=3600000)
+st_autorefresh(interval=3600000)
 
 feedback_df = extract_all_rows(FEEDBACK_NAME)
 
