@@ -11,11 +11,6 @@ def compute_metrics(df: pd.DataFrame):
             "count": 0
         }
 
-    df["act_min"] = (
-        pd.to_datetime(df["arrived_time"]) -
-        pd.to_datetime(df["meeting_time"])
-    ).dt.total_seconds() / 60
-
     errors = df["act_min"] - df["pred_min"]
 
     metrics = {
