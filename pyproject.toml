@@ -6,5 +6,6 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "streamlit>=1.57.0",
+    "streamlit-autorefresh>=1.0.1",
     "supabase>=2.30.0",
 ]
