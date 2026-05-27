@@ -269,7 +269,7 @@ st.dataframe(
         error_df
         .sort_values("abs_error", ascending=False)
         .head(10)[["feedback_id"] + categorical_cols + numerical_cols + ["act_min", "pred_min"]]
-        .reset_index()
+        .reset_index(drop=True)
     ),
     width="stretch"
 )
