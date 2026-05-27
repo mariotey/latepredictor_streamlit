@@ -21,6 +21,8 @@ from config import (
     MODEL_REGISTRY_ID
 )
 
+SG_TZ = "Asia/Singapore"
+
 st.set_page_config(layout="wide")
 
 # Title
@@ -126,6 +128,8 @@ col2.metric("Registry ID of Model Used", MODEL_REGISTRY_ID)
 col3.metric("No. of Training Data", len(feature_df))
 col4.metric("No. of Feedback Data", metrics["count"])
 
+#################################################################################################
+
 st.subheader("📦 Data Drift")
 
 cols = st.columns(len(numerical_cols))
@@ -191,6 +195,8 @@ for i, col in enumerate(categorical_cols):
     with cols[i]:
         st.plotly_chart(fig, width="stretch")
 
+#################################################################################################
+
 st.subheader("📉 Model Drift")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -254,91 +260,7 @@ fig.add_hline(
 
 st.plotly_chart(fig, width="stretch")
 
-st.subheader("🧠 Concept Drift Monitoring")
-
-features_list = numerical_cols + categorical_cols
-
-fig = px.scatter(
-    error_df,
-    x="distance_km",
-    y="abs_error",
-    color="category",
-    title="Does Distance Still Influence Error?",
-    opacity=0.6
-)
-
-fig.update_layout(
-    xaxis_title="Distance (km)",
-    yaxis_title="Absolute Error (minutes)"
-)
-
-st.plotly_chart(fig, width="stretch")
-
-corr_df = (
-    error_df
-    .groupby("date")
-    .apply(lambda x: x["distance_km"].corr(x["abs_error"]))
-    .reset_index(name="corr")
-)
-
-fig = px.line(
-    corr_df,
-    x="date",
-    y="corr",
-    markers=True,
-    title="Distance vs Error Correlation Over Time"
-)
-
-fig.update_layout(
-    xaxis_title="Date",
-    yaxis_title="Correlation"
-)
-
-st.plotly_chart(fig, width="stretch")
-
-seg_df = (
-    error_df
-    .groupby(["date", "category"])["abs_error"]
-    .mean()
-    .reset_index()
-)
-
-fig = px.line(
-    seg_df,
-    x="date",
-    y="abs_error",
-    color="category",
-    title="Category-wise Error Over Time"
-)
-
-fig.update_layout(
-    xaxis_title="Date",
-    yaxis_title="Mean Absolute Error"
-)
-
-st.plotly_chart(fig, width="stretch")
-
-bias_df = (
-    error_df
-    .groupby("date")["error"]
-    .mean()
-    .reset_index()
-)
-
-fig = px.line(
-    bias_df,
-    x="date",
-    y="error",
-    markers=True,
-    title="Prediction Bias Over Time"
-)
-
-fig.update_layout(
-    xaxis_title="Date",
-    yaxis_title="Mean Error (Bias)"
-)
-
-st.plotly_chart(fig, width="stretch")
+#################################################################################################
 
 st.subheader("🚨 Worst Predictions")
 
