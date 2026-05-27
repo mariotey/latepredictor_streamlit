@@ -3,40 +3,52 @@ import streamlit as st
 import plotly.express as px
 from streamlit_autorefresh import st_autorefresh
 from utils.supabase_utils import extract_all_rows
+from utils.feature_transform import get_features
 from utils.statistics_utils import compute_metrics
-from config import FEEDBACK_NAME
-
-feedback_df = extract_all_rows(FEEDBACK_NAME)
-
-feedback_df["act_min"] = (
-    pd.to_datetime(feedback_df["arrived_time"]) -
-    pd.to_datetime(feedback_df["meeting_time"])
-).dt.total_seconds() / 60
-
-feedback_df["error"] = feedback_df["act_min"] - feedback_df["pred_min"]
-feedback_df["abs_error"] = feedback_df["error"].abs()
+from config import (
+    FEATURE_NAME,
+    FEEDBACK_NAME,
+    CATEGORY_NAME,
+    FEATURE_REGISTRY_NAME,
+    FEATURE_REGISTRY_ID
+)
 
 st.set_page_config(layout="wide")
-
 
 # Title
 st.title("⏱️ Lateness Prediction Monitoring Dashboard")
 
-
 # Refreshes every hour
-st_autorefresh(interval=3600000)
+st_autorefresh(interval=3600000/4)
 
+# Import Data
+feature_df = extract_all_rows(FEATURE_NAME)
+feedback_df = extract_all_rows(FEEDBACK_NAME)
+category_df = extract_all_rows(CATEGORY_NAME)
+
+# Process the user input into model features
+modified_feedback_df = get_features(feedback_df)
+modified_feedback_df = (
+    modified_feedback_df
+    .merge(
+        category_df,
+        how="left",
+        on="category_id"
+    )
+    .drop(columns=["category_id"])
+)
 
 # General Metrics
-metrics = compute_metrics(feedback_df)
+metrics = compute_metrics(modified_feedback_df)
 
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 col1.metric("MAE", f"{metrics['mae']:.2f}")
-col2.metric("RMSE", f"{metrics['rmse']:.2f}")
-col3.metric("Bias", f"{metrics['bias']:.2f}")
-col4.metric("P90 Error", f"{metrics['p90_error']:.2f}")
-col5.metric("Samples", metrics["count"])
+col2.metric("MAE", f"{metrics['mse']:.2f}")
+col3.metric("RMSE", f"{metrics['rmse']:.2f}")
+col4.metric("Bias", f"{metrics['bias']:.2f}")
+col5.metric("P90 Error", f"{metrics['p90_error']:.2f}")
+col6.metric("Samples", metrics["count"])
 
 
 # CHART 1: Predicted vs Actual
@@ -84,3 +96,6 @@ st.plotly_chart(fig2, width="stretch")
 st.subheader("Top 10 Worst Predictions")
 feedback_df["abs_error"] = abs(feedback_df["error"])
 st.dataframe(feedback_df.sort_values("abs_error", ascending=False).head(10), use_container_width=True)
+
+# TODO: Incorportae MSE
+# TODO: Incorporate Data Drift, Model Drift and Concept Drift Distribution
